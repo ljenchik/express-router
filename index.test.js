@@ -1,10 +1,11 @@
 const request = require("supertest");
 const { app } = require("./src/app");
 const { syncSeed } = require("./seed");
-const { User, Fruits } = require("./models/index");
+const { User, Fruit } = require("./models/index");
 let quantity;
+let fruitQuantity;
 
-describe("Tests user endpoints", () => {
+describe("Tests users endpoints", () => {
     beforeAll(async () => {
         await syncSeed();
         const allUsers = await User.findAll();
@@ -79,5 +80,83 @@ describe("Tests user endpoints", () => {
         const users = await User.findAll();
         expect(users.length).toBe(quantity);
         expect(users[0].id).not.toEqual(1);
+    });
+});
+
+describe("Tests fruits endpoints", () => {
+    beforeAll(async () => {
+        await syncSeed();
+        const allFruit = await User.findAll();
+        fruitQuantity = allFruit.length;
+    });
+    test("tets GET /fruits endpoint", async () => {
+        const response = await request(app).get("/fruits");
+        //console.log(JSON.stringify(response, null, 2));
+        expect(response.statusCode).toEqual(200);
+        expect(response.body instanceof Array).toEqual(true);
+        expect(response.body.length).toEqual(fruitQuantity);
+        expect(response.body[0]).toHaveProperty("color");
+        expect(response.body).toContainEqual(
+            expect.objectContaining({
+                name: "Grape",
+                color: "Purple",
+            })
+        );
+        expect(response.body).toContainEqual(
+            expect.objectContaining({
+                name: "Kiwi",
+                color: "Green",
+            })
+        );
+    });
+
+    test("tets GET /fruits/:id endpoint", async () => {
+        const id = 4;
+        const response = await request(app).get(`/fruits/${id}`);
+        expect(response.statusCode).toEqual(200);
+        expect(response.body instanceof Object).toEqual(true);
+        expect(response.body).toHaveProperty("color");
+        expect(response.body).toEqual(
+            expect.objectContaining({ id: 4, name: "Grape", color: "Purple" })
+        );
+    });
+
+    test("tests POST /fruits endpoint", async () => {
+        const response = await request(app).post("/fruits").send({
+            name: "Cherry",
+            color: "Dark red",
+        });
+        //console.log(response.body);
+        expect(response.statusCode).toEqual(200);
+        expect(response.body.length).toEqual(fruitQuantity + 1);
+        expect(response.body).toContainEqual(
+            expect.objectContaining({
+                name: "Cherry",
+                color: "Dark red",
+            })
+        );
+    });
+
+    test("tests PUT /fruits/:id endpoint", async () => {
+        const id = 1;
+        const response = await request(app).put(`/fruits/${id}`).send({
+            name: "Tomato",
+            color: "Red",
+        });
+        //console.log(response.body);
+        expect(response.statusCode).toEqual(200);
+        expect(response.body.length).toEqual(fruitQuantity + 1);
+        const foundFruit = await Fruit.findByPk(id);
+        expect(foundFruit.name).toEqual("Tomato");
+    });
+
+    test("tests DELETE /fruits/:id endpoint", async () => {
+        const id = 2;
+        const response = await request(app).delete(`/fruits/${id}`);
+        expect(response.statusCode).toEqual(200);
+        expect(response.body.length).toEqual(fruitQuantity);
+        const fruits = await Fruit.findAll();
+        expect(fruits.length).toBe(fruitQuantity);
+        expect(fruits[1].id).not.toEqual(2);
     });
 });
