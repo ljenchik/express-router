@@ -1,6 +1,7 @@
-const { Router } = require("express");
+const express = require("express");
+//const { Router } = require("express");
 const { User } = require("./../models");
-const userRouter = Router();
+const userRouter = express.Router(); //
 
 userRouter.get("/", async (req, res) => {
     const allUsers = await User.findAll();
