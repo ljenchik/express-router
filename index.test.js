@@ -160,3 +160,30 @@ describe("Tests fruits endpoints", () => {
         expect(fruits[1].id).not.toEqual(2);
     });
 });
+
+describe("tests that error is returned, when adding data with missing properties", () => {
+    beforeAll(async () => {
+        await syncSeed();
+        const allFruit = await User.findAll();
+        fruitQuantity = allFruit.length;
+    });
+    test("tests user's missing name field, should return error", async () => {
+        const response = await request(app).post("/users").send({ age: 26 });
+        expect(response.body).toHaveProperty("error");
+        expect(Array.isArray(response.body.error)).toBe(true);
+    });
+    test("tests fruit's missing colour field, should return error", async () => {
+        const response = await request(app)
+            .post("/fruits")
+            .send({ name: "Melon" });
+        expect(response.body).toHaveProperty("error");
+        expect(Array.isArray(response.body.error)).toBe(true);
+        expect(response.body.error).toEqual([
+            {
+                msg: "Invalid value",
+                param: "color",
+                location: "body",
+            },
+        ]);
+    });
+});
