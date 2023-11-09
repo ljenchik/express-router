@@ -1,7 +1,7 @@
 const express = require("express");
-//const { Router } = require("express");
+const { check, validationResult } = require("express-validator");
 const { User } = require("./../models");
-const userRouter = express.Router(); //
+const userRouter = express.Router();
 
 userRouter.get("/", async (req, res) => {
     const allUsers = await User.findAll();
@@ -14,11 +14,20 @@ userRouter.get("/:id", async (req, res) => {
     res.json(user);
 });
 
-userRouter.post("/", async (req, res) => {
-    await User.create(req.body);
-    const allUsers = await User.findAll();
-    res.json(allUsers);
-});
+userRouter.post(
+    "/",
+    [check("name").not().isEmpty().trim()],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.json({ error: errors.array() });
+        } else {
+            await User.create(req.body);
+            const allUsers = await User.findAll();
+            res.json(allUsers);
+        }
+    }
+);
 
 userRouter.put("/:id", async (req, res) => {
     const id = req.params.id;
