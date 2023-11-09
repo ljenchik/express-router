@@ -16,7 +16,11 @@ userRouter.get("/:id", async (req, res) => {
 
 userRouter.post(
     "/",
-    [check("name").not().isEmpty().trim()],
+    [
+        check("name").not().isEmpty().trim(),
+        check("age").not().isEmpty().trim(),
+        check("name").isLength({ min: 5, max: 15 }),
+    ],
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -29,13 +33,26 @@ userRouter.post(
     }
 );
 
-userRouter.put("/:id", async (req, res) => {
-    const id = req.params.id;
-    const user = await User.findByPk(id);
-    await user.update(req.body);
-    const allUsers = await User.findAll();
-    res.json(allUsers);
-});
+userRouter.put(
+    "/:id",
+    [
+        check("name").not().isEmpty().trim(),
+        check("age").not().isEmpty().trim(),
+        check("name").isLength({ min: 5, max: 15 }),
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.json({ error: errors.array() });
+        } else {
+            const id = req.params.id;
+            const user = await User.findByPk(id);
+            await user.update(req.body);
+            const allUsers = await User.findAll();
+            res.json(allUsers);
+        }
+    }
+);
 
 userRouter.delete("/:id", async (req, res) => {
     const id = req.params.id;

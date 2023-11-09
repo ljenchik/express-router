@@ -62,14 +62,14 @@ describe("Tests users endpoints", () => {
     test("tests PUT /users/:id endpoint", async () => {
         const id = 1;
         const response = await request(app).put(`/users/${id}`).send({
-            name: "Anna",
+            name: "AnnaB",
             age: 25,
         });
         //console.log(response.body);
         expect(response.statusCode).toEqual(200);
         expect(response.body.length).toEqual(quantity + 1);
         const foundUser = await User.findByPk(id);
-        expect(foundUser.name).toEqual("Anna");
+        expect(foundUser.name).toEqual("AnnaB");
     });
 
     test("tests DELETE /users/:id endpoint", async () => {
@@ -185,5 +185,35 @@ describe("tests that error is returned, when adding data with missing properties
                 location: "body",
             },
         ]);
+    });
+
+    test("tests the length of name in user, too short", async () => {
+        const response = await request(app)
+            .post("/users")
+            .send({ name: "John", age: 26 });
+        expect(response.body).toHaveProperty("error");
+        expect(Array.isArray(response.body.error)).toBe(true);
+    });
+    test("tests the length of name in user, too long", async () => {
+        const response = await request(app)
+            .post("/users")
+            .send({ name: "Johnnnnnnn   nnnnn kkjkjkasd", age: 26 });
+        expect(response.body).toHaveProperty("error");
+        expect(Array.isArray(response.body.error)).toBe(true);
+    });
+
+    test("tests the length of name in fruit, too short", async () => {
+        const response = await request(app)
+            .post("/users")
+            .send({ name: "Apl", color: "Pink" });
+        expect(response.body).toHaveProperty("error");
+        expect(Array.isArray(response.body.error)).toBe(true);
+    });
+    test("tests the length of name in user, too long", async () => {
+        const response = await request(app)
+            .post("/users")
+            .send({ name: "Appleeee asdadadffdwf", color: "Red" });
+        expect(response.body).toHaveProperty("error");
+        expect(Array.isArray(response.body.error)).toBe(true);
     });
 });
